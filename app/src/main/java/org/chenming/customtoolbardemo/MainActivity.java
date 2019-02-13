@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
@@ -52,47 +53,70 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(onClickListener);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            ObjectAnimator animator = ObjectAnimator.ofArgb(arcBarView, "barColor", getResources().getColor(R.color.colorPrimaryDark));
+            animator.addListener(collapseAnimatorListener);
+            animator.start();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (!isToolbarExpanded) {
                 ObjectAnimator animator = ObjectAnimator.ofInt(arcBarView, "expandHeight", toolbarHeight);
-                animator.addListener(animatorListener);
+                animator.addListener(expandAnimatorListener);
                 animator.setInterpolator(new OvershootInterpolator());
                 animator.setDuration(500)
                         .start();
-                isToolbarExpanded = true;
-            } else {
-                ObjectAnimator animator = ObjectAnimator.ofInt(arcBarView, "expandHeight", 0);
-                animator.setInterpolator(new OvershootInterpolator());
-                animator.addListener(animatorListener);
-                animator.setDuration(500)
-                        .start();
-//                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-//                toolbar.setBackgroundResource(android.R.color.transparent);
-//                arcBarView.setBarColor(getResources().getColor(R.color.colorPrimaryDark));
-                isToolbarExpanded = false;
             }
         }
     };
 
-    ObjectAnimator.AnimatorListener animatorListener = new ObjectAnimator.AnimatorListener() {
+    ObjectAnimator.AnimatorListener expandAnimatorListener = new ObjectAnimator.AnimatorListener() {
         @Override
         public void onAnimationStart(Animator animation) {
-
+            isToolbarExpanded = true;
         }
 
         @Override
         public void onAnimationEnd(Animator animation) {
-            if (isToolbarExpanded) {
-//                ObjectAnimator objectAnimator = ObjectAnimator.ofInt(arcBarView, "barColor", getResources().getColor(R.color.colorPrimary));
-//                objectAnimator.setDuration(30).start();
-//                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//                toolbar.setBackgroundResource(R.color.colorPrimaryDark);
-                textViewTitle.setText("Expand");
-            } else {
-                textViewTitle.setText("Collapse");
-            }
+            ObjectAnimator objectAnimator = ObjectAnimator.ofArgb(arcBarView, "barColor", getResources().getColor(R.color.colorPrimary));
+            objectAnimator.start();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            toolbar.setBackgroundResource(R.color.colorPrimaryDark);
+            textViewTitle.setText("Expand");
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
+        }
+    };
+
+    ObjectAnimator.AnimatorListener collapseAnimatorListener = new ObjectAnimator.AnimatorListener() {
+        @Override
+        public void onAnimationStart(Animator animation) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            ObjectAnimator animator = ObjectAnimator.ofInt(arcBarView, "expandHeight", 0);
+            animator.setInterpolator(new OvershootInterpolator());
+            animator.setDuration(500)
+                    .start();
+            toolbar.setBackgroundResource(android.R.color.transparent);
+            textViewTitle.setText("Collapse");
+            isToolbarExpanded = false;
         }
 
         @Override
